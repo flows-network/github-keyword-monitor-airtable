@@ -20,7 +20,7 @@ pub fn run() {
 
 fn callback(_body: Vec<u8>) {
     let account: &str = "github";
-    let base_id: &str = "appy9lQh5weLSucbP";
+    let base_id: &str = "appNEswczILgUsxML";
     let table_name: &str = "mention";
 
     let search_key_word = "GitHub WASMEDGE";
