@@ -19,9 +19,9 @@ pub fn run() {
 }
 
 fn callback(_body: Vec<u8>) {
-    let account: &str = "jaykchen";
-    let base_id: &str = "apptJFYvsGrrywvWh";
-    let table_name: &str = "users";
+    let account: &str = "github";
+    let base_id: &str = "ppy9lQh5weLSucbP";
+    let table_name: &str = "mention";
 
     let search_key_word = "GitHub WASMEDGE";
     let mut writer = Vec::new();
@@ -72,7 +72,7 @@ fn callback(_body: Vec<u8>) {
                             });
                             create_record(account, base_id, table_name, data.clone());
 
-                            send_message_to_channel("ik8", "ch_out", data.to_string());
+                            send_message_to_channel("second-state", "test-flow", data.to_string());
                         }
                     }
                 }
