@@ -12,7 +12,7 @@ use slack_flows::send_message_to_channel;
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("36 * * * *"),
+        String::from("36 12 * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
