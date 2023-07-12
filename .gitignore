@@ -5,3 +5,5 @@ issue.closed.json
 workflowrun.completed.json
 workflowrun.completed.cancel.json
 workflowrun.completed.failure.json
+search.result.json
+search.logic.sh

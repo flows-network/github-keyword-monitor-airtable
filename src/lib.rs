@@ -8,11 +8,13 @@ use schedule_flows::schedule_cron_job;
 use serde::Deserialize;
 use serde_json::Value;
 use slack_flows::send_message_to_channel;
+use std::collections::HashSet;
+use store_flows::{get, set};
 
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("36 12 * * *"),
+        String::from("30 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -23,9 +25,7 @@ fn callback(_body: Vec<u8>) {
     let base_id: &str = "appNEswczILgUsxML";
     let table_name: &str = "mention";
 
-    let search_key_word = "GitHub WASMEDGE";
-    let mut writer = Vec::new();
-
+    let search_key_word = "WASMEDGE";
     let query_params: Value = serde_json::json!({
         "q": search_key_word,
         "sort": "created",
@@ -34,8 +34,10 @@ fn callback(_body: Vec<u8>) {
 
     let query_string = serde_urlencoded::to_string(&query_params).unwrap();
     let url_str = format!("https://api.github.com/search/issues?{}", query_string);
+    // let url_str = format!("https://api.github.com/search/issues?q={search_key_word}+in:title+state:open+repo:second-state/WasmEdge&sort=created&order=desc");
 
     let url = Uri::try_from(url_str.as_str()).unwrap();
+    let mut writer = Vec::new();
 
     match Request::new(&url)
         .method(Method::GET)
@@ -51,19 +53,35 @@ fn callback(_body: Vec<u8>) {
 
                 Ok(search_result) => {
                     let now = Utc::now();
-                    // let one_hour_ago = now - Duration::minutes(60);
-                    let one_day_earlier = now - Duration::minutes(1440);
+                    let one_day_earlier = now - Duration::days(1);
                     for item in search_result.items {
                         let name = item.user.login;
-                        let title = item.title;
+                        // let title = item.title;
                         let html_url = item.html_url;
                         let time = item.created_at;
                         let parsed = DateTime::parse_from_rfc3339(&time).unwrap_or_default();
 
                         if parsed > one_day_earlier {
-                            // let text = format!(
-                            //     "{name} mentioned WASMEDGE in issue: {title}  @{html_url}\n{time}"
-                            // );
+                            match get("issue_records") {
+                                Some(records) => {
+                                    let records: HashSet<String> =
+                                        serde_json::from_value(records).unwrap_or_default();
+
+                                    if records.contains(&html_url) {
+                                        continue;
+                                    } else {
+                                        let mut records = records;
+                                        records.insert(html_url.clone());
+                                        set("issue_records", serde_json::json!(records), None);
+                                    }
+                                }
+
+                                None => {
+                                    let mut inner = HashSet::<String>::new();
+                                    inner.insert(html_url.clone());
+                                    set("issue_records", serde_json::json!(inner), None);
+                                }
+                            }
 
                             let data = serde_json::json!({
                                 "Name": name,
@@ -72,7 +90,7 @@ fn callback(_body: Vec<u8>) {
                             });
                             create_record(account, base_id, table_name, data.clone());
 
-                            send_message_to_channel("secondstate", "test-flow", data.to_string());
+                            send_message_to_channel("ik8", "general", data.to_string());
                         }
                     }
                 }
@@ -84,6 +102,7 @@ fn callback(_body: Vec<u8>) {
 
 #[derive(Debug, Deserialize)]
 struct SearchResult {
+    total_count: u32,
     items: Vec<Issue>,
 }
 
@@ -93,6 +112,7 @@ struct Issue {
     title: String,
     user: User,
     created_at: String,
+    body: String,
 }
 
 #[derive(Debug, Deserialize)]
