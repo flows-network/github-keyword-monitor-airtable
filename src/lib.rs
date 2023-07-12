@@ -1,29 +1,35 @@
 use airtable_flows::create_record;
 use chrono::{DateTime, Datelike, Duration, Utc};
+use dotenv::dotenv;
+use flowsnet_platform_sdk::{logger, write_error_log};
 use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
+use log;
 use schedule_flows::schedule_cron_job;
 use serde::Deserialize;
 use serde_json::Value;
 use slack_flows::send_message_to_channel;
 use std::collections::HashSet;
+use std::env;
 use store_flows::{get, set};
-
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("30 * * * *"),
+        String::from("31 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
 }
 
 fn callback(_body: Vec<u8>) {
-    let account: &str = "github";
-    let base_id: &str = "appNEswczILgUsxML";
-    let table_name: &str = "mention";
+    dotenv().ok();
+    logger::init();
+
+    let airtable_token_name = env::var("airtable_token_name").unwrap_or("github".to_string());
+    let airtable_base_id = env::var("airtable_base_id").unwrap_or("appNEswczILgUsxML".to_string());
+    let airtable_table_name = env::var("airtable_table_name").unwrap_or("mention".to_string());
 
     let search_key_word = "WASMEDGE";
     let query_params: Value = serde_json::json!({
@@ -46,14 +52,19 @@ fn callback(_body: Vec<u8>) {
         .send(&mut writer)
     {
         Ok(res) => {
-            if !res.status_code().is_success() {}
+            if !res.status_code().is_success() {
+                log::debug!("Error sending request: {:?}", res.status_code());
+            };
+
             let response: Result<SearchResult, _> = serde_json::from_slice(&writer);
             match response {
-                Err(_e) => {}
+                Err(_e) => {
+                    log::debug!("Error parsing response: {:?}", _e.to_string());
+                }
 
                 Ok(search_result) => {
                     let now = Utc::now();
-                    let one_day_earlier = now - Duration::days(1);
+                    let one_day_earlier = now - Duration::days(3);
                     for item in search_result.items {
                         let name = item.user.login;
                         // let title = item.title;
@@ -62,33 +73,38 @@ fn callback(_body: Vec<u8>) {
                         let parsed = DateTime::parse_from_rfc3339(&time).unwrap_or_default();
 
                         if parsed > one_day_earlier {
-                            match get("issue_records") {
-                                Some(records) => {
-                                    let records: HashSet<String> =
-                                        serde_json::from_value(records).unwrap_or_default();
+                            // match get("issue_records") {
+                            //     Some(records) => {
+                            //         let records: HashSet<String> =
+                            //             serde_json::from_value(records).unwrap_or_default();
 
-                                    if records.contains(&html_url) {
-                                        continue;
-                                    } else {
-                                        let mut records = records;
-                                        records.insert(html_url.clone());
-                                        set("issue_records", serde_json::json!(records), None);
-                                    }
-                                }
+                            //         if records.contains(&html_url) {
+                            //             continue;
+                            //         } else {
+                            //             let mut records = records;
+                            //             records.insert(html_url.clone());
+                            //             set("issue_records", serde_json::json!(records), None);
+                            //         }
+                            //     }
 
-                                None => {
-                                    let mut inner = HashSet::<String>::new();
-                                    inner.insert(html_url.clone());
-                                    set("issue_records", serde_json::json!(inner), None);
-                                }
-                            }
+                            //     None => {
+                            //         let mut inner = HashSet::<String>::new();
+                            //         inner.insert(html_url.clone());
+                            //         set("issue_records", serde_json::json!(inner), None);
+                            //     }
+                            // }
 
                             let data = serde_json::json!({
                                 "Name": name,
                                 "Repo": html_url,
                                 "Created": time,
                             });
-                            create_record(account, base_id, table_name, data.clone());
+                            create_record(
+                                &airtable_token_name,
+                                &airtable_base_id,
+                                &airtable_table_name,
+                                data.clone(),
+                            );
 
                             send_message_to_channel("ik8", "general", data.to_string());
                         }
