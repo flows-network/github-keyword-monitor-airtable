@@ -17,7 +17,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("25 * * * *"),
+        String::from("33 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -64,7 +64,7 @@ fn callback(_body: Vec<u8>) {
 
                 Ok(search_result) => {
                     let now = Utc::now();
-                    let one_day_earlier = now - Duration::days(1);
+                    let one_day_earlier = now - Duration::days(2);
                     let one_day_earlier = one_day_earlier.date_naive(); // get the NaiveDate
 
                     for item in search_result.items {
@@ -78,26 +78,26 @@ fn callback(_body: Vec<u8>) {
                         let date: NaiveDate = datetime.date_naive(); // Convert to just date
 
                         if date > one_day_earlier {
-                            match get("issue_records") {
-                                Some(records) => {
-                                    let records: HashSet<String> =
-                                        serde_json::from_value(records).unwrap_or_default();
+                            // match get("issue_records") {
+                            //     Some(records) => {
+                            //         let records: HashSet<String> =
+                            //             serde_json::from_value(records).unwrap_or_default();
 
-                                    if records.contains(&html_url) {
-                                        continue;
-                                    } else {
-                                        let mut records = records;
-                                        records.insert(html_url.clone());
-                                        set("issue_records", serde_json::json!(records), None);
-                                    }
-                                }
+                            //         if records.contains(&html_url) {
+                            //             continue;
+                            //         } else {
+                            //             let mut records = records;
+                            //             records.insert(html_url.clone());
+                            //             set("issue_records", serde_json::json!(records), None);
+                            //         }
+                            //     }
 
-                                None => {
-                                    let mut inner = HashSet::<String>::new();
-                                    inner.insert(html_url.clone());
-                                    set("issue_records", serde_json::json!(inner), None);
-                                }
-                            }
+                            //     None => {
+                            //         let mut inner = HashSet::<String>::new();
+                            //         inner.insert(html_url.clone());
+                            //         set("issue_records", serde_json::json!(inner), None);
+                            //     }
+                            // }
 
                             let data = serde_json::json!({
                                 "Name": name,
