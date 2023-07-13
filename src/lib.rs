@@ -10,14 +10,13 @@ use log;
 use schedule_flows::schedule_cron_job;
 use serde::Deserialize;
 use serde_json::Value;
-use slack_flows::send_message_to_channel;
 use std::collections::HashSet;
 use std::env;
 use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("33 * * * *"),
+        String::from("39 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -64,14 +63,13 @@ fn callback(_body: Vec<u8>) {
 
                 Ok(search_result) => {
                     let now = Utc::now();
-                    let one_day_earlier = now - Duration::days(2);
+                    let one_day_earlier = now - Duration::days(1);
                     let one_day_earlier = one_day_earlier.date_naive(); // get the NaiveDate
 
                     for item in search_result.items {
                         let name = item.user.login;
                         // let title = item.title;
                         let html_url = item.html_url;
-                        send_message_to_channel("ik8", "ch_in", html_url.to_string());
 
                         let time = item.created_at;
                         let datetime: DateTime<Utc> = time.parse().unwrap(); // Parse the date and time string
@@ -110,8 +108,6 @@ fn callback(_body: Vec<u8>) {
                                 &airtable_table_name,
                                 data.clone(),
                             );
-
-                            send_message_to_channel("ik8", "general", data.to_string());
                         } else {
                             break;
                         }
