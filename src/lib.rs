@@ -1,5 +1,5 @@
 use airtable_flows::create_record;
-use chrono::{DateTime, Datelike, Duration, Utc};
+use chrono::{DateTime, Datelike, Duration, NaiveDate, Utc};
 use dotenv::dotenv;
 use flowsnet_platform_sdk::{logger, write_error_log};
 use http_req::{
@@ -17,7 +17,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("31 * * * *"),
+        String::from("11 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -65,14 +65,17 @@ fn callback(_body: Vec<u8>) {
                 Ok(search_result) => {
                     let now = Utc::now();
                     let one_day_earlier = now - Duration::days(3);
+                    let one_day_earlier = one_day_earlier.date().naive_utc(); // get the NaiveDate
+
                     for item in search_result.items {
                         let name = item.user.login;
                         // let title = item.title;
                         let html_url = item.html_url;
                         let time = item.created_at;
-                        let parsed = DateTime::parse_from_rfc3339(&time).unwrap_or_default();
+                        let datetime: DateTime<Utc> = time.parse().unwrap(); // Parse the date and time string
+                        let date: NaiveDate = datetime.date().naive_utc(); // Convert to just date
 
-                        if parsed > one_day_earlier {
+                        if date > one_day_earlier {
                             // match get("issue_records") {
                             //     Some(records) => {
                             //         let records: HashSet<String> =
