@@ -17,7 +17,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("33 * * * *"),
+        String::from("43 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -71,9 +71,12 @@ fn callback(_body: Vec<u8>) {
                         let name = item.user.login;
                         // let title = item.title;
                         let html_url = item.html_url;
+                        send_message_to_channel("ik8", "ch_in", html_url.to_string());
+
                         let time = item.created_at;
                         let datetime: DateTime<Utc> = time.parse().unwrap(); // Parse the date and time string
                         let date: NaiveDate = datetime.date().naive_utc(); // Convert to just date
+                        send_message_to_channel("ik8", "ch_err", date.to_string());
 
                         if date > one_day_earlier {
                             // match get("issue_records") {
@@ -109,7 +112,7 @@ fn callback(_body: Vec<u8>) {
                                 data.clone(),
                             );
 
-                            send_message_to_channel("ik8", "general", data.to_string());
+                            send_message_to_channel("ik8", "ch_out", data.to_string());
                         }
                     }
                 }
@@ -121,7 +124,6 @@ fn callback(_body: Vec<u8>) {
 
 #[derive(Debug, Deserialize)]
 struct SearchResult {
-    total_count: u32,
     items: Vec<Issue>,
 }
 
