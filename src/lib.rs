@@ -1,7 +1,7 @@
 use airtable_flows::create_record;
 use chrono::{DateTime, Datelike, Duration, NaiveDate, Utc};
 use dotenv::dotenv;
-use flowsnet_platform_sdk::{logger, write_error_log};
+use flowsnet_platform_sdk::logger;
 use http_req::{
     request::{Method, Request},
     uri::Uri,
@@ -17,7 +17,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("43 * * * *"),
+        String::from("16 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -113,6 +113,8 @@ fn callback(_body: Vec<u8>) {
                             );
 
                             send_message_to_channel("ik8", "ch_out", data.to_string());
+                        } else {
+                            break;
                         }
                     }
                 }
@@ -124,6 +126,7 @@ fn callback(_body: Vec<u8>) {
 
 #[derive(Debug, Deserialize)]
 struct SearchResult {
+    // incomplete_results: bool,
     items: Vec<Issue>,
 }
 
@@ -133,7 +136,7 @@ struct Issue {
     title: String,
     user: User,
     created_at: String,
-    body: String,
+    // body: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
