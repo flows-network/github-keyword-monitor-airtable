@@ -1,5 +1,5 @@
 use airtable_flows::create_record;
-use chrono::{DateTime, Datelike, Duration, NaiveDate, Utc};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use dotenv::dotenv;
 use flowsnet_platform_sdk::logger;
 use http_req::{
@@ -17,7 +17,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("16 * * * *"),
+        String::from("25 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -64,8 +64,8 @@ fn callback(_body: Vec<u8>) {
 
                 Ok(search_result) => {
                     let now = Utc::now();
-                    let one_day_earlier = now - Duration::days(3);
-                    let one_day_earlier = one_day_earlier.date().naive_utc(); // get the NaiveDate
+                    let one_day_earlier = now - Duration::days(1);
+                    let one_day_earlier = one_day_earlier.date_naive(); // get the NaiveDate
 
                     for item in search_result.items {
                         let name = item.user.login;
@@ -75,30 +75,29 @@ fn callback(_body: Vec<u8>) {
 
                         let time = item.created_at;
                         let datetime: DateTime<Utc> = time.parse().unwrap(); // Parse the date and time string
-                        let date: NaiveDate = datetime.date().naive_utc(); // Convert to just date
-                        send_message_to_channel("ik8", "ch_err", date.to_string());
+                        let date: NaiveDate = datetime.date_naive(); // Convert to just date
 
                         if date > one_day_earlier {
-                            // match get("issue_records") {
-                            //     Some(records) => {
-                            //         let records: HashSet<String> =
-                            //             serde_json::from_value(records).unwrap_or_default();
+                            match get("issue_records") {
+                                Some(records) => {
+                                    let records: HashSet<String> =
+                                        serde_json::from_value(records).unwrap_or_default();
 
-                            //         if records.contains(&html_url) {
-                            //             continue;
-                            //         } else {
-                            //             let mut records = records;
-                            //             records.insert(html_url.clone());
-                            //             set("issue_records", serde_json::json!(records), None);
-                            //         }
-                            //     }
+                                    if records.contains(&html_url) {
+                                        continue;
+                                    } else {
+                                        let mut records = records;
+                                        records.insert(html_url.clone());
+                                        set("issue_records", serde_json::json!(records), None);
+                                    }
+                                }
 
-                            //     None => {
-                            //         let mut inner = HashSet::<String>::new();
-                            //         inner.insert(html_url.clone());
-                            //         set("issue_records", serde_json::json!(inner), None);
-                            //     }
-                            // }
+                                None => {
+                                    let mut inner = HashSet::<String>::new();
+                                    inner.insert(html_url.clone());
+                                    set("issue_records", serde_json::json!(inner), None);
+                                }
+                            }
 
                             let data = serde_json::json!({
                                 "Name": name,
@@ -112,7 +111,7 @@ fn callback(_body: Vec<u8>) {
                                 data.clone(),
                             );
 
-                            send_message_to_channel("ik8", "ch_out", data.to_string());
+                            send_message_to_channel("ik8", "general", data.to_string());
                         } else {
                             break;
                         }
@@ -120,7 +119,9 @@ fn callback(_body: Vec<u8>) {
                 }
             }
         }
-        Err(_e) => {}
+        Err(_e) => {
+            log::debug!("Error getting response from GitHub: {:?}", _e.to_string());
+        }
     }
 }
 
