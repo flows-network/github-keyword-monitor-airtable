@@ -19,10 +19,10 @@ use slack_flows::send_message_to_channel;
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
     schedule_cron_job(
-        String::from("47 * * * *"),
+        String::from("54 * * * *"),
         String::from("cron_job_evoked"),
         callback,
-    );
+    ).await;
 }
 
 async fn callback(_body: Vec<u8>) {
