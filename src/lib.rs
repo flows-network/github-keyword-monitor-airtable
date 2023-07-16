@@ -79,10 +79,11 @@ async fn callback(_body: Vec<u8>) {
                         let date: NaiveDate = datetime.date_naive(); // Convert to just date
 
                         if date > one_day_earlier {
-                            send_message_to_channel("ik8", "ch_err", html_url.clone()).await;
                             let mut records: HashSet<String> = get("issue_records")
                                 .and_then(|val| serde_json::from_value(val).ok())
                                 .unwrap_or_default();
+                            let text = records.clone().iter().map(|x| x.to_string()).collect::<Vec<String>>().join("\n");
+                            send_message_to_channel("ik8", "ch_err", text).await;
 
                             if !records.contains(&html_url) {
                                 records.insert(html_url.clone());
