@@ -1,5 +1,5 @@
 [package]
-name = "new-issue-airtable"
+name = "new-issue-monitor-airtable"
 version = "0.1.0"
 edition = "2021"
 
