@@ -16,7 +16,7 @@ use store_flows::{get, set};
 #[no_mangle]
 pub fn run() {
     schedule_cron_job(
-        String::from("43 * * * *"),
+        String::from("4 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
@@ -76,26 +76,26 @@ fn callback(_body: Vec<u8>) {
                         let date: NaiveDate = datetime.date_naive(); // Convert to just date
 
                         if date > one_day_earlier {
-                            // match get("issue_records") {
-                            //     Some(records) => {
-                            //         let records: HashSet<String> =
-                            //             serde_json::from_value(records).unwrap_or_default();
+                            match get("issue_records") {
+                                Some(records) => {
+                                    let records: HashSet<String> =
+                                        serde_json::from_value(records).unwrap_or_default();
 
-                            //         if records.contains(&html_url) {
-                            //             continue;
-                            //         } else {
-                            //             let mut records = records;
-                            //             records.insert(html_url.clone());
-                            //             set("issue_records", serde_json::json!(records), None);
-                            //         }
-                            //     }
+                                    if records.contains(&html_url) {
+                                        continue;
+                                    } else {
+                                        let mut records = records;
+                                        records.insert(html_url.clone());
+                                        set("issue_records", serde_json::json!(records), None);
+                                    }
+                                }
 
-                            //     None => {
-                            //         let mut inner = HashSet::<String>::new();
-                            //         inner.insert(html_url.clone());
-                            //         set("issue_records", serde_json::json!(inner), None);
-                            //     }
-                            // }
+                                None => {
+                                    let mut inner = HashSet::<String>::new();
+                                    inner.insert(html_url.clone());
+                                    set("issue_records", serde_json::json!(inner), None);
+                                }
+                            }
 
                             let data = serde_json::json!({
                                 "Name": name,
