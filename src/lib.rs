@@ -13,13 +13,12 @@ use serde_json::Value;
 use std::collections::HashSet;
 use std::env;
 use store_flows::{get, set};
-use slack_flows::send_message_to_channel;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
     schedule_cron_job(
-        String::from("44 * * * *"),
+        String::from("8 8 * * *"),
         String::from("cron_job_evoked"),
         callback,
     ).await;
@@ -67,7 +66,7 @@ async fn callback(_body: Vec<u8>) {
                 Ok(search_result) => {
                     let now = Utc::now();
                     let one_day_earlier = now - Duration::days(1);
-                    let one_day_earlier = one_day_earlier.date_naive(); // get the NaiveDate
+                    let one_day_earlier = one_day_earlier.date_naive(); 
 
                     for item in search_result.items {
                         let name = item.user.login;
@@ -75,8 +74,8 @@ async fn callback(_body: Vec<u8>) {
                         let html_url = item.html_url;
 
                         let time = item.created_at;
-                        let datetime: DateTime<Utc> = time.parse().unwrap(); // Parse the date and time string
-                        let date: NaiveDate = datetime.date_naive(); // Convert to just date
+                        let datetime: DateTime<Utc> = time.parse().unwrap(); 
+                        let date: NaiveDate = datetime.date_naive(); 
 
                         if date > one_day_earlier {
                             let mut records: HashSet<String> = get("issue_records")
