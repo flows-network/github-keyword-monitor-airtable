@@ -12,17 +12,20 @@ use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashSet;
 use std::env;
-// use store_flows::{get, set};
+use store_flows::{get, set};
+use slack_flows::send_message_to_channel;
+
 #[no_mangle]
-pub fn run() {
+#[tokio::main(flavor = "current_thread")]
+pub async fn run() {
     schedule_cron_job(
-        String::from("26 * * * *"),
+        String::from("47 * * * *"),
         String::from("cron_job_evoked"),
         callback,
     );
 }
 
-fn callback(_body: Vec<u8>) {
+async fn callback(_body: Vec<u8>) {
     dotenv().ok();
     logger::init();
 
@@ -76,14 +79,15 @@ fn callback(_body: Vec<u8>) {
                         let date: NaiveDate = datetime.date_naive(); // Convert to just date
 
                         if date > one_day_earlier {
-                            // let mut records: HashSet<String> = get("issue_records")
-                            //     .and_then(|val| serde_json::from_value(val).ok())
-                            //     .unwrap_or_default();
+                            send_message_to_channel("ik8", "ch_err", html_url.clone()).await;
+                            let mut records: HashSet<String> = get("issue_records")
+                                .and_then(|val| serde_json::from_value(val).ok())
+                                .unwrap_or_default();
 
-                            // if !records.contains(&html_url) {
-                            //     records.insert(html_url.clone());
-                            //     set("issue_records", serde_json::json!(records), None);
-                            // }
+                            if !records.contains(&html_url) {
+                                records.insert(html_url.clone());
+                                set("issue_records", serde_json::json!(records), None);
+                            }
 
                             let data = serde_json::json!({
                                 "Name": name,
