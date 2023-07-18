@@ -18,7 +18,7 @@ use store_flows::{get, set, Expire, ExpireKind};
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() {
     schedule_cron_job(
-        String::from("8 8 * * *"),
+        String::from("8 4 * * *"),
         String::from("cron_job_evoked"),
         callback,
     )
