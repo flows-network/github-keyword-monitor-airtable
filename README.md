@@ -23,9 +23,8 @@ This flow function is triggered by time. At the specified time, the flow functio
 
 ## Deploy your own code review flow function in 3 simple steps
 
-1. Create a flow function from a template
-2. Add your OpenAI API key
-3. Configure the flow function to review PRs on a specified GitHub repo
+1. Create a flow from a template
+2. Configure the flow to access Airtable
 
 ### 0 Prerequisites
 
@@ -44,7 +43,7 @@ Review the `keyword` variable. Enter any keyword that you want to track. Only su
 
 Click on the **Create and Build** button.
 
-### 2 Configure the flow to access airtable
+### 2 Configure the flow to access Airtable
 
 Set up Airtable integration. 
 
