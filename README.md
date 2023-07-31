@@ -19,13 +19,13 @@
 
 ## How it works
 
-This bot is triggered by time. At the specified time, the bot searches for all GitHub issues from the past 24 hours, filters them based on your chosen keyword and saves the results into an Airtable table.
+This flow function is triggered by time. At the specified time, the flow function searches for all GitHub issues from the past 24 hours, filters them based on your chosen keyword and saves the results into an Airtable table.
 
-## Deploy your own code review bot in 3 simple steps
+## Deploy your own code review flow function in 3 simple steps
 
-1. Create a bot from a template
+1. Create a flow function from a template
 2. Add your OpenAI API key
-3. Configure the bot to review PRs on a specified GitHub repo
+3. Configure the flow function to review PRs on a specified GitHub repo
 
 ### 0 Prerequisites
 
@@ -33,7 +33,7 @@ Sign into [flows.network](https://flows.network/) from your GitHub account. It i
 
 [A pre-built Airtable table](https://airtable.com/invite/l?inviteId=invN9XkuZjUpVoKZ8&inviteToken=a9c5477d82e73c73b0e5228cdb4083434be061d115e7e88b89ee9df1b3ff4d8b&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts) to save the results.
 
-### 1 Create a bot from a template
+### 1 Create a flow function from a template
 
 [**Click here to deploy**](https://flows.network/flow/createByTemplate/github-keyword-monitor-airtable)
 
