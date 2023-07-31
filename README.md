@@ -1,4 +1,4 @@
-# <p align="center">Searching all GitHub issues </p>
+# <p align="center">Save GitHub issues mentioning a specific keyword to Airtable</p>
 
 <p align="center">
   <a href="https://discord.gg/ccZn9ZMfFf">
